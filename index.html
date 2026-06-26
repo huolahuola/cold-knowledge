@@ -34,22 +34,13 @@ img,video,canvas,svg{max-width:100%;max-height:100%;}
 .slide.active .reveal{opacity:1;transform:none;}
 
 /* ── COVER ── */
-.cover-photo-side{position:absolute;right:60px;top:28px;z-index:3;width:660px;
-  /* default: hidden off-screen to the left */
-  transform:translateX(-1100px);opacity:0;}
-/* Slide in when cover slide is active */
-.slide.active .cover-photo-side{
-  animation:photo-slide-in 1.4s cubic-bezier(.25,.46,.45,.94) .1s forwards;}
-@keyframes photo-slide-in{
-  0%{transform:translateX(-1100px);opacity:0;}
-  20%{opacity:1;}
-  100%{transform:translateX(0);opacity:1;}}
-/* Image pans from left side to right side within the frame */
+.cover-photo-side{position:absolute;right:60px;top:28px;z-index:3;width:660px;overflow:hidden;}
+/* Zoom-out reveal: start on couple, expand to full frame */
 .slide.active .cover-photo-side img{
-  animation:photo-pan 2.2s cubic-bezier(.25,.46,.45,.94) .2s both;}
-@keyframes photo-pan{
-  from{object-position:0% center;}
-  to{object-position:62% center;}}
+  animation:photo-zoomout 2.8s cubic-bezier(.25,.46,.45,.94) .2s both;}
+@keyframes photo-zoomout{
+  0%{transform:scale(2.4);transform-origin:32% 38%;}
+  100%{transform:scale(1);transform-origin:32% 38%;}}
 .cover-photo-side img{width:100%;height:940px;object-fit:cover;object-position:28% center;border-radius:14px;
   box-shadow:0 0 60px rgba(109,40,217,.15),0 0 0 1px rgba(109,40,217,.15);}
 .cover-photo-caption{font-family:'Oxanium',sans-serif;font-size:12px;letter-spacing:3px;color:rgba(111,237,224,.3);
