@@ -70,8 +70,15 @@ img,video,canvas,svg{max-width:100%;max-height:100%;}
 /* Dragon effect */
 .dragon-word.changed{animation:dragon-flash .5s var(--ease);}
 @keyframes dragon-flash{0%{filter:blur(0) brightness(1);}30%{filter:blur(8px) brightness(4);}60%{filter:blur(2px) brightness(2);}100%{filter:none;}}
-.particle{position:fixed;pointer-events:none;z-index:99999;border-radius:50%;animation:particle-fly .8s ease-out forwards;}
-@keyframes particle-fly{0%{opacity:1;transform:translate(0,0) scale(1);}100%{opacity:0;transform:translate(var(--tx),var(--ty)) scale(0);}}
+/* Dragon effect particles */
+@keyframes emoji-fly{
+  0%{opacity:1;transform:translate(-50%,-50%) rotate(0deg) scale(1);}
+  100%{opacity:0;transform:translate(calc(-50% + var(--tx)),calc(-50% + var(--ty))) rotate(var(--rot)) scale(.3);}
+}
+@keyframes shockwave{
+  0%{transform:scale(1);opacity:.9;}
+  100%{transform:scale(35);opacity:0;}
+}
 
 /* ── QUESTION SLIDES ── */
 .q-inner{position:absolute;inset:0;z-index:2;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;}
@@ -471,45 +478,70 @@ img,video,canvas,svg{max-width:100%;max-height:100%;}
 })();
 
 /* DRAGON CLICK EFFECT */
+/* DRAGON EASTER EGG */
 (function(){
-  let transformed=false;
-  function spawnParticles(x,y,color){
-    for(let i=0;i<18;i++){
-      const p=document.createElement('div');
-      p.className='particle';
+  let done=false;
+  const pool=['🔥','🐉','🍉','✨','💥','🌟','🎉','🔥','🐉','🍉','⚡','🎊'];
+
+  function spawnEmojis(cx,cy){
+    for(let i=0;i<40;i++){
+      const el=document.createElement('div');
+      const size=22+Math.random()*44;
       const angle=Math.random()*Math.PI*2;
-      const dist=40+Math.random()*80;
-      const tx=Math.cos(angle)*dist+'px';
-      const ty=Math.sin(angle)*dist+'px';
-      const size=4+Math.random()*6;
-      p.style.cssText=`width:${size}px;height:${size}px;background:${color};left:${x-size/2}px;top:${y-size/2}px;--tx:${tx};--ty:${ty};animation-duration:${.5+Math.random()*.4}s;`;
-      document.body.appendChild(p);
-      setTimeout(()=>p.remove(),900);
+      const dist=120+Math.random()*260;
+      el.textContent=pool[Math.floor(Math.random()*pool.length)];
+      el.style.cssText=`position:fixed;pointer-events:none;z-index:99999;font-size:${size}px;`+
+        `left:${cx}px;top:${cy}px;`+
+        `--tx:${Math.cos(angle)*dist}px;--ty:${Math.sin(angle)*dist-80}px;`+
+        `--rot:${(Math.random()-.5)*720}deg;`+
+        `animation:emoji-fly ${.7+Math.random()*.7}s ease-out ${Math.random()*.15}s forwards;`+
+        `user-select:none;`;
+      document.body.appendChild(el);
+      setTimeout(()=>el.remove(),1400);
     }
   }
-  function triggerDragon(el,event){
-    if(transformed)return;
-    transformed=true;
-    const rect=el.getBoundingClientRect();
-    const cx=rect.left+rect.width/2;
-    const cy=rect.top+rect.height/2;
-    spawnParticles(cx,cy,'#6D28D9');
-    spawnParticles(cx,cy,'#DB2777');
-    // Transform all dragon words
-    document.querySelectorAll('.dragon-word').forEach(dw=>{
-      dw.style.filter='blur(8px) brightness(4)';
-      dw.style.transition='filter .25s,color .6s';
-      setTimeout(()=>{
-        dw.textContent='火冷果';
-        dw.style.color=dw.closest('.cover-by')?'#DB2777':'#6D28D9';
-        setTimeout(()=>{dw.style.filter='none';},100);
-      },220);
-    });
-    // Second burst after transform
-    setTimeout(()=>spawnParticles(cx,cy,'#DB2777'),280);
+
+  function spawnRing(cx,cy,color,delay){
+    setTimeout(()=>{
+      const r=document.createElement('div');
+      r.style.cssText=`position:fixed;pointer-events:none;z-index:99998;`+
+        `width:12px;height:12px;border-radius:50%;`+
+        `border:3px solid ${color};left:${cx-6}px;top:${cy-6}px;`+
+        `animation:shockwave .7s ease-out forwards;`;
+      document.body.appendChild(r);
+      setTimeout(()=>r.remove(),800);
+    },delay);
   }
+
+  function triggerDragon(el){
+    if(done)return; done=true;
+    const r=el.getBoundingClientRect();
+    const cx=r.left+r.width/2, cy=r.top+r.height/2;
+
+    spawnRing(cx,cy,'rgba(109,40,217,.9)',0);
+    spawnRing(cx,cy,'rgba(219,39,119,.8)',80);
+    spawnRing(cx,cy,'rgba(109,40,217,.6)',160);
+    spawnEmojis(cx,cy);
+    setTimeout(()=>spawnEmojis(cx,cy),180);
+
+    document.querySelectorAll('.dragon-word').forEach(dw=>{
+      dw.style.transition='transform .12s ease-in,opacity .12s';
+      dw.style.transform='scale(2) rotate(-8deg)';
+      setTimeout(()=>{
+        dw.style.opacity='0';
+        setTimeout(()=>{
+          dw.textContent='火冷果';
+          dw.style.color=dw.closest('.cover-by')?'#DB2777':'#6D28D9';
+          dw.style.transition='transform .3s var(--ease),opacity .2s';
+          dw.style.transform='scale(1)';
+          dw.style.opacity='1';
+        },130);
+      },120);
+    });
+  }
+
   document.querySelectorAll('.dragon-word').forEach(el=>{
-    el.addEventListener('click',e=>triggerDragon(el,e));
+    el.addEventListener('click',()=>triggerDragon(el));
   });
 })();
 
